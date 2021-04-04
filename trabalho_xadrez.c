@@ -8,10 +8,10 @@
 #define RAINHA  5
 #define REI     6
 
-typedef struct{
+struct Jogada{
     int deLinha,deColuna,paraLinha,paraColuna;
-    Jogada *prox, *ant;
-}Jogada;
+    struct Jogada *prox, *ant;
+};
 
 struct Peca
 {
@@ -36,18 +36,18 @@ struct Posicao
 
 //Funções de operações entre listas (lista de jogadas possíveis).
 
-Jogada *CriaListaJogadas()
+struct Jogada *CriaListaJogadas()
 {
-    Jogada *sentinela = (Jogada*)malloc(sizeof(Jogada));
+    struct Jogada *sentinela = (struct Jogada*)malloc(sizeof(struct Jogada));
     sentinela->prox = sentinela;
     sentinela->ant = sentinela;
     return sentinela;
 }
 
 
-Jogada *CriaJogada(int deLinha, int deColuna, int paraLinha, int paraColuna){
+struct Jogada *CriaJogada(int deLinha, int deColuna, int paraLinha, int paraColuna){
 
-    Jogada *resp = (Jogada*)malloc(sizeof(Jogada));
+    struct Jogada *resp = (struct Jogada*)malloc(sizeof(struct Jogada));
     resp->deLinha = deLinha;
     resp->deColuna = deColuna;
     resp->paraLinha = paraLinha;
@@ -60,9 +60,9 @@ Jogada *CriaJogada(int deLinha, int deColuna, int paraLinha, int paraColuna){
 
 }
 
-void InsereJogadaInicio(Jogada *lista, int deLinha, int deColuna, int paraLinha, int paraColuna){
+void InsereJogadaInicio(struct Jogada *lista, int deLinha, int deColuna, int paraLinha, int paraColuna){
     
-    Jogada *novo = CriaJogada(deLinha, deColuna, paraLinha, paraColuna);
+    struct Jogada *novo = CriaJogada(deLinha, deColuna, paraLinha, paraColuna);
     novo->prox = lista->prox;
     novo->ant = lista;
     lista->prox->ant = novo;
@@ -71,10 +71,10 @@ void InsereJogadaInicio(Jogada *lista, int deLinha, int deColuna, int paraLinha,
 }
 
 
-Jogada *CalculaJogadasPossiveis(struct Posicao pos){
+struct Jogada *CalculaJogadasPossiveis(struct Posicao pos){
     
     struct Peca *aux;
-    Jogada *listaPossiveisJogadas = CriaListaJogadas();
+    struct Jogada *listaPossiveisJogadas = CriaListaJogadas();
 
     //Zerando o contador de ataques de cada peça.
     
@@ -93,7 +93,6 @@ Jogada *CalculaJogadasPossiveis(struct Posicao pos){
     }
 
 
-    struct Peca *aux;
     if(pos.jogVez == 1){
         ///Brancas
         aux = pos.brancas->prox;
@@ -217,8 +216,8 @@ void DesenhaTabuleiro(struct Posicao posAtual){
     printf("      1   2   3   4   5   6   7   8 \n");
 }
 
-void CalculaPeao(struct Posicao pos,int linha,int coluna,Jogada *lista){ 
-    Jogada jogada;
+void CalculaPeao(struct Posicao pos,int linha,int coluna, struct Jogada *lista){ 
+    struct Jogada jogada;
     int qtd = 0, peca = pos.tab[linha][coluna]->codigo;
 
     if (linha+peca>=0 && linha+peca<=7){//não está na primeira nem na última linha
@@ -238,7 +237,7 @@ void CalculaPeao(struct Posicao pos,int linha,int coluna,Jogada *lista){
     }
 }
 
-void CalculaCavalo(struct Posicao pos, int linha, int coluna, Jogada *lista){
+void CalculaCavalo(struct Posicao pos, int linha, int coluna, struct Jogada *lista){
     int qtd=0,peca = pos.tab[linha][coluna]->codigo;
 
     if (linha<6){ //duas linhas acima
@@ -299,7 +298,7 @@ void CalculaCavalo(struct Posicao pos, int linha, int coluna, Jogada *lista){
     }
 }
 
-void CalculaBispo(struct Posicao pos, int linha, int coluna, Jogada *lista){ 
+void CalculaBispo(struct Posicao pos, int linha, int coluna, struct Jogada *lista){ 
     int qtd = 0,peca = pos.tab[linha][coluna]->codigo;
 
     int k=0;
@@ -350,7 +349,7 @@ void CalculaBispo(struct Posicao pos, int linha, int coluna, Jogada *lista){
 
 }
 
-void CalculaTorre(struct Posicao pos, int linha, int coluna, Jogada *lista){
+void CalculaTorre(struct Posicao pos, int linha, int coluna, struct Jogada *lista){
     int qtd = 0, peca=pos.tab[linha][coluna]->codigo;
 
     int k=0;
@@ -400,7 +399,7 @@ void CalculaTorre(struct Posicao pos, int linha, int coluna, Jogada *lista){
 
 }
 
-void CalculaRei(struct Posicao pos, int linha, int coluna, Jogada *lista){
+void CalculaRei(struct Posicao pos, int linha, int coluna, struct Jogada *lista){
     int qtd = 0, peca=pos.tab[linha][coluna]->codigo;
 
     if (linha<7){//linha de cima
@@ -556,7 +555,7 @@ void EscolhePeca(struct Posicao pos ,int *linha, int *coluna){
     }while (pos.tab[*linha][*coluna]==NULL);
 }
 
-void CalculaJogadas(struct Posicao pos,int linha, int coluna, Jogada *lista){
+void CalculaJogadas(struct Posicao pos,int linha, int coluna, struct Jogada *lista){
     int aux, peca = pos.tab[linha][coluna]->codigo;
     switch (abs(peca)){
     case PEAO:   CalculaPeao(pos,linha,coluna,lista);break;//peoes
@@ -570,7 +569,7 @@ void CalculaJogadas(struct Posicao pos,int linha, int coluna, Jogada *lista){
     }
 }
 
-Jogada EscolheJogada(Jogada listaJogadas){
+struct Jogada EscolheJogada(struct Jogada *listaJogadas){
     int i = 0,j=0,op, qtd;
     qtd = qtdJogadas(listaJogadas);
     
@@ -584,7 +583,7 @@ Jogada EscolheJogada(Jogada listaJogadas){
         scanf("%d",&op);
     }while (op<1 || op>qtd);*/
     
-    Jogada aux = listaJogadas->prox;
+    struct Jogada *aux = listaJogadas->prox;
     do{ 
         while(aux != listaJogadas){
             printf("Jogada %2d: mover para linha %d coluna %d |", i+1, aux->paraLinha+1, aux->paraColuna+1);   
@@ -602,7 +601,7 @@ Jogada EscolheJogada(Jogada listaJogadas){
 
     do{
         if(j == op)
-            return aux;
+            return *aux;
         
         aux = aux->prox;
         j++;
@@ -611,9 +610,9 @@ Jogada EscolheJogada(Jogada listaJogadas){
 
 }
 
-int qtdJogadas(Jogada *lista){
+int qtdJogadas(struct Jogada *lista){
     int qtd = 0;
-    Jogada *aux = lista->prox;
+    struct Jogada *aux = lista->prox;
 
     while(aux != lista){
         qtd++;
@@ -624,40 +623,40 @@ int qtdJogadas(Jogada *lista){
 
 } 
 
-int ExecutaJogada(struct Posicao *pos,Jogada jog){
+int ExecutaJogada(struct Posicao *pos, struct Jogada jog){
     int resp=0; 
-    struct Peca *peca = pos.tab[jog.deLinha][jog.deColuna];
+    struct Peca *peca = pos->tab[jog.deLinha][jog.deColuna];
 
     //tab[jog.deLinha][jog.deColuna] = 0; //tira a peça
 
-    if(pos.tab[jog.deLinha][jog.deColuna]->codigo * peca->codigo = 0){ //movimentação
-        pos.tab[jog.paraLinha][jog.paraColuna] = peca; 
+    if(pos->tab[jog.deLinha][jog.deColuna]->codigo * peca->codigo = 0){ //movimentação
+        pos->tab[jog.paraLinha][jog.paraColuna] = peca; 
         peca->linha = jog.paraLinha;
         peca->coluna = jog.paraColuna;
-        pos.tab[jog.deLinha][jog.paraColuna] = NULL;
+        pos->tab[jog.deLinha][jog.paraColuna] = NULL;
         
         return 0;
     }   
 
-    if(pos.tab[jog.deLinha][jog.deColuna]->codigo * peca->codigo < 0){ //captura
+    if(pos->tab[jog.deLinha][jog.deColuna]->codigo * peca->codigo < 0){ //captura
         
         if(pos->jogVez == 1){
             if(pos->tab[jog.paraLinha][jog.paraColuna]->codigo == -REI){
                 RemovePeca(pos->qtdPretas, peca->codigo, peca->linha, peca->coluna);
                 pos->qtdPretas--;
-                pos.tab[jog.paraLinha][jog.paraColuna] = peca;
+                pos->tab[jog.paraLinha][jog.paraColuna] = peca;
                 peca->linha = jog.paraLinha;
                 peca->coluna = jog.paraColuna;
-                pos.tab[jog.deLinha][jog.deColuna] = NULL;
+                pos->tab[jog.deLinha][jog.deColuna] = NULL;
                 
                 return 1;
             }else{
                 RemovePeca(pos->qtdPretas, peca->codigo, peca->linha, peca->coluna);
                 pos->qtdPretas--;
-                pos.tab[jog.paraLinha][jog.paraColuna] = peca;
+                pos->tab[jog.paraLinha][jog.paraColuna] = peca;
                 peca->linha = jog.paraLinha;
                 peca->coluna = jog.paraColuna;
-                pos.tab[jog.deLinha][jog.deColuna] = NULL;
+                pos->tab[jog.deLinha][jog.deColuna] = NULL;
                 return 0;
             }
         } 
@@ -666,19 +665,19 @@ int ExecutaJogada(struct Posicao *pos,Jogada jog){
             if(pos->tab[jog.paraLinha][jog.paraColuna]->codigo == REI){
                 RemovePeca(pos->qtdBrancas, peca->codigo, peca->linha, peca->coluna);
                 pos->qtdBrancas--;
-                pos.tab[jog.paraLinha][jog.paraColuna] = peca;
+                pos->tab[jog.paraLinha][jog.paraColuna] = peca;
                 peca->linha = jog.paraLinha;
                 peca->coluna = jog.paraColuna;
-                pos.tab[jog.deLinha][jog.deColuna] = NULL;
+                pos->tab[jog.deLinha][jog.deColuna] = NULL;
 
                 return 1;
             }else{
                 RemovePeca(pos->qtdPretas, peca->codigo, peca->linha, peca->coluna);
                 pos->qtdPretas--;
-                pos.tab[jog.paraLinha][jog.paraColuna] = peca;
+                pos->tab[jog.paraLinha][jog.paraColuna] = peca;
                 peca->linha = jog.paraLinha;
                 peca->coluna = jog.paraColuna;
-                pos.tab[jog.deLinha][jog.deColuna] = NULL;
+                pos->tab[jog.deLinha][jog.deColuna] = NULL;
                 return 0;
             }
         }
@@ -696,8 +695,8 @@ int main(){
     int tab[8][8];
     int vencedor=0,linha,coluna,escolha;
     int qtdJogadas;
-    Jogada jogadasPossiveis = CriaListaJogadas();
-    Jogada jogada;
+    struct Jogada *jogadasPossiveis = CriaListaJogadas();
+    struct Jogada jogada;
     struct Posicao posAtual;
     posAtual = IniciaTabuleiro();
 
@@ -707,7 +706,7 @@ int main(){
         jogadasPossiveis = CalculaJogadasPossiveis(posAtual);
 
         jogada = EscolheJogada(jogadasPossiveis);
-        vencedor = ExecutaJogada(posAtual,jogada);
+        vencedor = ExecutaJogada(&posAtual,jogada);
     }
     if (vencedor>0){
         printf("Brancas venceram!");
