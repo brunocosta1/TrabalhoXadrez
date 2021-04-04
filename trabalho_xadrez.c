@@ -10,7 +10,7 @@
 
 typedef struct{
     int deLinha,deColuna,paraLinha,paraColuna;
-    struct Jogada *prox, *ant;
+    Jogada *prox, *ant;
 }Jogada;
 
 struct Peca
@@ -238,7 +238,7 @@ void CalculaPeao(struct Posicao pos,int linha,int coluna,Jogada *lista){
     }
 }
 
-void CalculaCavalo(struct Posicao pos, int linha, int coluna, Jogada lista){
+void CalculaCavalo(struct Posicao pos, int linha, int coluna, Jogada *lista){
     int qtd=0,peca = pos.tab[linha][coluna]->codigo;
 
     if (linha<6){ //duas linhas acima
@@ -566,13 +566,15 @@ void CalculaJogadas(struct Posicao pos,int linha, int coluna, Jogada *lista){
     case RAINHA: CalculaBispo(pos,linha,coluna,lista);
                  CalculaTorre(pos,linha,coluna,lista);
                  break;
-    case REI:    CalculaRei(pos,linha,coluna,jogs);break;//rei
+    case REI:    CalculaRei(pos,linha,coluna,lista);break;//rei
     }
 }
 
-int EscolheJogada(int qtd, Jogada jogs[]){
-    int i,j,op;
-    do{
+Jogada EscolheJogada(Jogada listaJogadas){
+    int i = 0,j=0,op, qtd;
+    qtd = qtdJogadas(listaJogadas);
+    
+    /*do{
         for (i=0;i<qtd;i++){
             printf("Jogada %2d: mover para linha %d coluna %d |",i+1,jogs[i].paraLinha+1,jogs[i].paraColuna+1);
             if ( (i+1) % 3 == 0)
@@ -580,41 +582,137 @@ int EscolheJogada(int qtd, Jogada jogs[]){
         }
         printf("\nJogada:");
         scanf("%d",&op);
-    }while (op<1 || op>qtd);
-    return op;
+    }while (op<1 || op>qtd);*/
+    
+    Jogada aux = listaJogadas->prox;
+    do{ 
+        while(aux != listaJogadas){
+            printf("Jogada %2d: mover para linha %d coluna %d |", i+1, aux->paraLinha+1, aux->paraColuna+1);   
+            if((i+1) % 3 == 0)
+                printf("\n");
+            
+            i++;
+            aux = aux->prox;
+        }
+        printf("\nJogada:");
+        scanf("%d", &op);
+    }while(op<1 || op>qtd);    
+
+    aux = listaJogadas->prox;
+
+    do{
+        if(j == op)
+            return aux;
+        
+        aux = aux->prox;
+        j++;
+    }while(j != op);
+
+
 }
 
-int ExecutaJogada(int tab[8][8],Jogada jog){
-    int resp=0, peca = tab[jog.deLinha][jog.deColuna];
+int qtdJogadas(Jogada *lista){
+    int qtd = 0;
+    Jogada *aux = lista->prox;
 
-    tab[jog.deLinha][jog.deColuna] = 0; //tira a peça
+    while(aux != lista){
+        qtd++;
+        aux = aux->prox;
+    }
 
-    if (abs(tab[jog.paraLinha][jog.paraColuna])==REI) //verifica se o rei adversário será capturado
-        resp = peca; //resp indica quem será vencedor
+    return qtd;
 
-    tab[jog.paraLinha][jog.paraColuna] = peca; //coloca a peça na nova posição
+} 
 
-    return resp;
+int ExecutaJogada(struct Posicao *pos,Jogada jog){
+    int resp=0; 
+    struct Peca *peca = pos.tab[jog.deLinha][jog.deColuna];
+
+    //tab[jog.deLinha][jog.deColuna] = 0; //tira a peça
+
+    if(pos.tab[jog.deLinha][jog.deColuna]->codigo * peca->codigo = 0){ //movimentação
+        pos.tab[jog.paraLinha][jog.paraColuna] = peca; 
+        peca->linha = jog.paraLinha;
+        peca->coluna = jog.paraColuna;
+        pos.tab[jog.deLinha][jog.paraColuna] = NULL;
+        
+        return 0;
+    }   
+
+    if(pos.tab[jog.deLinha][jog.deColuna]->codigo * peca->codigo < 0){ //captura
+        
+        if(pos->jogVez == 1){
+            if(pos->tab[jog.paraLinha][jog.paraColuna]->codigo == -REI){
+                RemovePeca(pos->qtdPretas, peca->codigo, peca->linha, peca->coluna);
+                pos->qtdPretas--;
+                pos.tab[jog.paraLinha][jog.paraColuna] = peca;
+                peca->linha = jog.paraLinha;
+                peca->coluna = jog.paraColuna;
+                pos.tab[jog.deLinha][jog.deColuna] = NULL;
+                
+                return 1;
+            }else{
+                RemovePeca(pos->qtdPretas, peca->codigo, peca->linha, peca->coluna);
+                pos->qtdPretas--;
+                pos.tab[jog.paraLinha][jog.paraColuna] = peca;
+                peca->linha = jog.paraLinha;
+                peca->coluna = jog.paraColuna;
+                pos.tab[jog.deLinha][jog.deColuna] = NULL;
+                return 0;
+            }
+        } 
+
+        if(pos->jogVez == -1){
+            if(pos->tab[jog.paraLinha][jog.paraColuna]->codigo == REI){
+                RemovePeca(pos->qtdBrancas, peca->codigo, peca->linha, peca->coluna);
+                pos->qtdBrancas--;
+                pos.tab[jog.paraLinha][jog.paraColuna] = peca;
+                peca->linha = jog.paraLinha;
+                peca->coluna = jog.paraColuna;
+                pos.tab[jog.deLinha][jog.deColuna] = NULL;
+
+                return 1;
+            }else{
+                RemovePeca(pos->qtdPretas, peca->codigo, peca->linha, peca->coluna);
+                pos->qtdPretas--;
+                pos.tab[jog.paraLinha][jog.paraColuna] = peca;
+                peca->linha = jog.paraLinha;
+                peca->coluna = jog.paraColuna;
+                pos.tab[jog.deLinha][jog.deColuna] = NULL;
+                return 0;
+            }
+        }
+    
+    }
+    //if (abs(tab[jog.paraLinha][jog.paraColuna])==REI) //verifica se o rei adversário será capturado
+    //    resp = peca; //resp indica quem será vencedor
+
+    //tab[jog.paraLinha][jog.paraColuna] = peca; //coloca a peça na nova posição
+
+    //return resp;
 }
 
 int main(){
     int tab[8][8];
     int vencedor=0,linha,coluna,escolha;
     int qtdJogadas;
-    Jogada jogadas[30];
+    Jogada jogadasPossiveis = CriaListaJogadas();
+    Jogada jogada;
     struct Posicao posAtual;
     posAtual = IniciaTabuleiro();
 
     while (vencedor==0){
         DesenhaTabuleiro(posAtual);
-        EscolhePeca(tab,&linha,&coluna);
-        qtdJogadas = CalculaJogadas(tab,linha,coluna,jogadas);
-        if (qtdJogadas>0){
-            escolha = EscolheJogada(qtdJogadas,jogadas);
-            vencedor = ExecutaJogada(tab,jogadas[escolha-1]);
-        }else printf("Nao ha jogadas disponiveis!");
+        EscolhePeca(posAtual,&linha,&coluna);
+        jogadasPossiveis = CalculaJogadasPossiveis(posAtual);
+
+        jogada = EscolheJogada(jogadasPossiveis);
+        vencedor = ExecutaJogada(posAtual,jogada);
     }
     if (vencedor>0){
         printf("Brancas venceram!");
     }else printf("Pretas venceram!");
+
+
+    return 0;
 }
