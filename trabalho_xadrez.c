@@ -702,6 +702,51 @@ int ExecutaJogada(struct Jogada jog, struct Posicao *pos){
     return resp;
 }
 
+struct Posicao CopiaPosicao(struct Posicao pos){
+    
+    struct Posicao copia;
+    struct Peca *aux;
+    copia.brancas = CriaLista();
+    copia.pretas = CriaLista();
+    
+    copia.jogVez = pos.jogVez;
+    copia.qtdPretas = pos.qtdPretas;
+    copia.qtdBrancas = pos.qtdBrancas;
+    
+    // Inicializando todas as casas
+
+    for(int i = 0; i < 8; i++)
+        for(int j = 0; j < 8; j++)
+            copia.tab[i][j] = NULL;
+    
+
+
+    // Colocando as peças brancas 
+
+    aux = pos.brancas->ant; 
+
+    while(aux != pos.brancas){
+        InsereInicio(copia.brancas, aux->codigo, aux->linha, aux->coluna);
+        copia.tab[aux->linha][aux->coluna] = copia.brancas->prox;
+        aux = aux->ant;
+    }
+
+    // Colocando as peças pretas na lista
+
+    aux = pos.pretas->ant;
+            
+    while(aux != pos.pretas){
+        InsereInicio(copia.pretas, aux->codigo, aux->linha, aux->coluna);
+        copia.tab[aux->linha][aux->coluna] = copia.pretas->prox;
+        aux = aux->ant;
+    }
+    
+
+
+    return copia;
+
+}
+
 
 
 
