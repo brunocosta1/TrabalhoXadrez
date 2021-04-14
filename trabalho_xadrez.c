@@ -748,12 +748,16 @@ struct Posicao CopiaPosicao(struct Posicao pos){
 }
 
 void LiberaMemoria(struct Posicao pos){
-
     pos.brancas = DestruirListaPecas(pos.brancas);
     pos.pretas = DestruirListaPecas(pos.pretas);
-
 }
 
+double AvaliaPosicao(struct Posicao posAtual){
+    
+    double avaliacao = 0;
+
+    return avaliacao;
+}
 
 int main(){
     
