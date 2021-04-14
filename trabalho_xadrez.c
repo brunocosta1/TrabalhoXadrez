@@ -747,7 +747,12 @@ struct Posicao CopiaPosicao(struct Posicao pos){
 
 }
 
+void LiberaMemoria(struct Posicao pos){
 
+    pos.brancas = DestruirListaPecas(pos.brancas);
+    pos.pretas = DestruirListaPecas(pos.pretas);
+
+}
 
 
 int main(){
