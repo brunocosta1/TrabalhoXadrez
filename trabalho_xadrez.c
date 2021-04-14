@@ -1,5 +1,5 @@
-#include "stdio.h"
-#include "stdlib.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 #define PEAO    1
 #define CAVALO  2
@@ -34,7 +34,7 @@ struct Posicao
     struct Peca *tab[8][8];
 };
 
-//Funções de operações entre listas (lista de jogadas possíveis).
+//FunÃ§Ãµes de operaÃ§Ãµes entre listas (lista de jogadas possÃ­veis).
 
 struct Jogada *CriaListaJogadas()
 {
@@ -70,13 +70,327 @@ void InsereJogadaInicio(struct Jogada *lista, int deLinha, int deColuna, int par
     
 }
 
+struct Jogada *BuscaJogada(struct Jogada *lista, int deLinha, int deColuna, int paraLinha, int paraColuna){
+   
+    struct Jogada *aux = lista->prox;
 
+    while(aux != lista && !(aux->deLinha == deLinha && aux->deColuna == deColuna && aux->paraLinha == paraLinha && aux->paraColuna == paraColuna))
+        aux = aux->prox;
+
+    if(aux != lista)
+        return aux;
+    else
+        return NULL;
+}
+struct Jogada *DestruirListaJogadas(struct Jogada *lista){
+    struct Jogada *aux = lista;
+    lista->ant->prox = NULL;
+    while(aux != NULL)
+    {
+        lista = lista->prox;
+        free(aux);
+        aux = lista;
+    }
+
+    return NULL;
+}
+
+void CalculaPeao(struct Posicao pos,int linha,int coluna, struct Jogada *lista){ 
+    int qtd = 0, peca = pos.tab[linha][coluna]->codigo;
+ 
+
+    if (linha+peca>=0 && linha+peca<=7){//n?o est? na primeira nem na ?ltima linha
+        if (pos.tab[linha+peca][coluna]==NULL){ //pode avancar
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+peca,coluna); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha+peca, coluna);
+            
+        }
+        if (coluna>0 && pos.tab[linha+peca][coluna-1] != NULL && pos.tab[linha+peca][coluna-1]->codigo*peca<0){ //verificar captura na esquerda
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+peca,coluna-1); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha+peca, coluna-1);
+            pos.tab[linha+peca][coluna-1]->ataques++;
+        }
+        if (coluna<7 && pos.tab[linha+peca][coluna+1] != NULL && pos.tab[linha+peca][coluna+1]->codigo*peca<0){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+peca,coluna+1); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha+peca, coluna+1);
+            pos.tab[linha+peca][coluna+1]->ataques++;
+        }
+    }
+    
+
+}
+
+void CalculaCavalo(struct Posicao pos, int linha, int coluna, struct Jogada *lista){
+    int qtd=0,peca = pos.tab[linha][coluna]->codigo;
+
+
+    if (linha<6){ //duas linhas acima
+        if (coluna<7){ //direita
+            if(pos.tab[linha+2][coluna+1] == NULL)
+                InsereJogadaInicio(lista, linha, coluna, linha+2, coluna+1);
+            else if(pos.tab[linha+2][coluna+1]->codigo*peca<0){
+                InsereJogadaInicio(lista, linha, coluna, linha+2, coluna+1);
+                pos.tab[linha+2][coluna+1]->ataques++;
+            }
+        }
+        if (coluna>0){ //esquerda
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+2,coluna-1); qtd++;
+            if(pos.tab[linha+2][coluna-1] == NULL)
+                InsereJogadaInicio(lista, linha, coluna, linha+2, coluna-1);
+            else if(pos.tab[linha+2][coluna-1]->codigo*peca<0){
+                InsereJogadaInicio(lista, linha, coluna, linha+2, coluna-1);
+                pos.tab[linha+2][coluna-1]->ataques++;
+            }
+        }
+    }
+
+    if (linha<7){//uma linha acima
+        if (coluna<6){ //duas casas ? direita
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna+2); qtd++;
+            if(pos.tab[linha+1][coluna+2] == NULL)
+                InsereJogadaInicio(lista, linha, coluna, linha+1, coluna+2);
+            else if(pos.tab[linha+1][coluna+2]->codigo*peca<0) {
+                InsereJogadaInicio(lista, linha, coluna, linha+1, coluna+2);
+                pos.tab[linha+1][coluna+2]->ataques++;
+            }
+        }
+        if (coluna>1 && (pos.tab[linha+1][coluna-2] == NULL ||pos.tab[linha+1][coluna-2]->codigo*peca<0)){ //duas casas ? esquerda
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna-2); qtd++;
+            if(pos.tab[linha+1][coluna-2] == NULL)
+                InsereJogadaInicio(lista, linha, coluna, linha+1, coluna-2);
+            else if(pos.tab[linha+1][coluna-2]->codigo*peca<0){
+                InsereJogadaInicio(lista, linha, coluna, linha+1, coluna-2);
+                pos.tab[linha+1][coluna-2]->ataques++;
+            }
+        }
+    }
+    if (linha>1){ //duas linhas abaixo
+        if (coluna<7){ //direita
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-2,coluna+1); qtd++;
+            if(pos.tab[linha-2][coluna+1] == NULL)
+                InsereJogadaInicio(lista, linha, coluna, linha-2, coluna+1);
+            else if(pos.tab[linha-2][coluna+1]->codigo*peca<0){
+                InsereJogadaInicio(lista, linha, coluna, linha-2, coluna+1);
+                pos.tab[linha-2][coluna+1]->ataques++;
+            }
+        }
+        if (coluna>0){ 
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-2,coluna-1); qtd++;
+            if(pos.tab[linha-2][coluna-1] == NULL)
+                InsereJogadaInicio(lista, linha, coluna, linha -2, coluna -1);
+            else if(pos.tab[linha-2][coluna-1]->codigo*peca<0){
+                InsereJogadaInicio(lista, linha, coluna, linha -2, coluna -1);
+                pos.tab[linha-2][coluna-1]->ataques++;
+            }
+        }
+    }
+    if (linha>0){//uma linha abaixo
+        if (coluna<6){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna+2); qtd++;
+            if(pos.tab[linha-1][coluna+2] == NULL)
+                InsereJogadaInicio(lista, linha, coluna, linha-1, coluna+2);
+            else if(pos.tab[linha-1][coluna+2]->codigo*peca<0){
+                InsereJogadaInicio(lista, linha, coluna, linha-1, coluna+2);
+                pos.tab[linha-1][coluna+2]->ataques++;
+            }
+        }
+        if (coluna>1){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna-2); qtd++;
+            if(pos.tab[linha-1][coluna-2] == NULL)
+                InsereJogadaInicio(lista, linha, coluna, linha -1, coluna-2);
+            else if(pos.tab[linha-1][coluna-2]->codigo*peca<0){
+                InsereJogadaInicio(lista, linha, coluna, linha -1, coluna-2);
+                pos.tab[linha-1][coluna-2]->ataques++;
+            }
+        }
+    }
+
+}
+
+void CalculaBispo(struct Posicao pos, int linha, int coluna, struct Jogada *lista){ 
+    int qtd = 0,peca = pos.tab[linha][coluna]->codigo;
+    
+    int k=0;
+    
+    do{//diagonal superior direita
+        k++;
+        if (linha+k<8 && coluna+k<8 && (pos.tab[linha+k][coluna+k] == NULL || pos.tab[linha+k][coluna+k]->codigo*peca<0)){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+k,coluna+k); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha+k, coluna+k);
+            if(pos.tab[linha+k][coluna+k] != NULL && pos.tab[linha+k][coluna+k]->codigo*peca<0)
+                pos.tab[linha+k][coluna+k]->ataques++;
+        }
+    }while (linha+k<8 && coluna+k<8 && pos.tab[linha+k][coluna+k]==NULL);
+
+    k=0;
+    do{//diagonal superior esquerda
+        k++;
+        if (linha+k<8 && coluna-k>=0 && (pos.tab[linha+k][coluna-k] == NULL || pos.tab[linha+k][coluna-k]->codigo*peca<0)){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+k,coluna-k); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha+k, coluna-k);
+            if(pos.tab[linha+k][coluna-k] != NULL && pos.tab[linha+k][coluna-k]->codigo*peca<0)
+                pos.tab[linha+k][coluna-k]->ataques++;
+        }
+    }while (linha+k<8 && coluna-k>=0 && pos.tab[linha+k][coluna-k]==NULL);
+
+    k=0;
+    do{//diagonal inferior direita
+        k++;
+        if (linha-k>=0 && coluna+k<8 && (pos.tab[linha-k][coluna+k] == NULL || pos.tab[linha-k][coluna+k]->codigo*peca<0)){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-k,coluna+k); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha-k, coluna+k);
+            if(pos.tab[linha-k][coluna+k] != NULL && pos.tab[linha-k][coluna+k]->codigo*peca<0)
+                pos.tab[linha-k][coluna+k]->ataques++;
+        }
+    }while (linha-k>=0 && coluna+k<8 && pos.tab[linha-k][coluna+k]==NULL);
+
+    k=0;
+    do{//diagonal inferior direita
+        k++;
+        if (linha-k>=0 && coluna-k>=0 && (pos.tab[linha-k][coluna-k] == NULL || pos.tab[linha-k][coluna-k]->codigo*peca<0)){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-k,coluna-k); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha-k, coluna-k);
+            if(pos.tab[linha-k][coluna-k] != NULL && pos.tab[linha-k][coluna-k]->codigo*peca<0)
+                pos.tab[linha-k][coluna-k]->ataques++;
+
+        }
+    }while (linha-k>=0 && coluna+k>=0 && pos.tab[linha-k][coluna-k]==NULL);
+
+
+}
+
+void CalculaTorre(struct Posicao pos, int linha, int coluna, struct Jogada *lista){
+    int qtd = 0, peca=pos.tab[linha][coluna]->codigo;
+    int k=0;
+
+    do{//coluna acima
+        k++;
+        if (linha+k<8 && (pos.tab[linha+k][coluna] == NULL || pos.tab[linha+k][coluna]->codigo*peca<0)){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+k,coluna); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha+k, coluna);
+            if(pos.tab[linha+k][coluna] != NULL && pos.tab[linha+k][coluna]->codigo*peca<0)
+                pos.tab[linha+k][coluna]->ataques++;
+        }
+    }while(linha+k<8 && pos.tab[linha+k][coluna]==NULL);
+
+    k=0;
+    do{//coluna abaixo
+        k++;
+        if (linha-k>=0 && (pos.tab[linha-k][coluna] == NULL || pos.tab[linha-k][coluna]->codigo*peca<0)){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-k,coluna); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha-k, coluna);
+            if(pos.tab[linha-k][coluna] != NULL && pos.tab[linha-k][coluna]->codigo*peca<0)
+                pos.tab[linha-k][coluna]->ataques++;
+        }
+    }while(linha-k>=0 && pos.tab[linha-k][coluna]==NULL);
+
+    k=0;
+    do{//linha direita
+        k++;
+        if (coluna+k<8 && (pos.tab[linha][coluna+k] == NULL || pos.tab[linha][coluna+k]->codigo*peca<0)){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha,coluna+k); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha, coluna+k);
+           if(pos.tab[linha][coluna+k] != NULL && pos.tab[linha][coluna+k]->codigo*peca<0)
+               pos.tab[linha][coluna+k]->ataques++;
+        }
+    }while(coluna+k<8 && pos.tab[linha][coluna+k]==NULL);
+
+    k=0;
+    do{//linha esquerda
+        k++;
+        if (coluna-k>=0 && (pos.tab[linha][coluna-k] == NULL || pos.tab[linha][coluna-k]->codigo*peca<0)){
+            //jogs[qtd] = CriaJogada(linha,coluna,linha,coluna-k); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha, coluna-k);
+            if(pos.tab[linha][coluna-k] != NULL && pos.tab[linha][coluna-k]->codigo*peca<0)
+                pos.tab[linha][coluna-k]->ataques++;
+        }
+    }while(coluna-k>=0 && pos.tab[linha][coluna-k]==NULL);
+
+}
+
+
+void CalculaRei(struct Posicao pos, int linha, int coluna, struct Jogada *lista){
+    int qtd = 0, peca=pos.tab[linha][coluna]->codigo;
+
+    if (linha<7){//linha de cima
+        if (pos.tab[linha+1][coluna] == NULL || pos.tab[linha+1][coluna]->codigo*peca<0){//mesma coluna
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha+1,coluna);
+            if(pos.tab[linha+1][coluna] != NULL && pos.tab[linha+1][coluna]->codigo*peca<0)
+                pos.tab[linha+1][coluna]->ataques++;
+        }
+        if (coluna<7 && (pos.tab[linha+1][coluna+1] == NULL || pos.tab[linha+1][coluna+1]->codigo*peca<0)){//superior direita
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna+1); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha+1, coluna+1);
+            if(pos.tab[linha+1][coluna+1] != NULL && pos.tab[linha+1][coluna+1]->codigo*peca<0)
+                pos.tab[linha+1][coluna+1]->ataques++;
+        }
+        if (coluna>0 && (pos.tab[linha+1][coluna-1] == NULL || pos.tab[linha+1][coluna-1]->codigo*peca<0)){//superior esquerda
+            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna-1); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha+1, coluna-1);
+            if(pos.tab[linha+1][coluna-1] != NULL && pos.tab[linha+1][coluna-1]->codigo*peca<0)
+                pos.tab[linha+1][coluna-1]->ataques++;
+        }
+    }
+
+    if (linha>0){//linha de baixo
+        if (pos.tab[linha-1][coluna] == NULL || pos.tab[linha-1][coluna]->codigo*peca<0){//mesma coluna
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha-1, coluna);
+            if(pos.tab[linha-1][coluna] != NULL && pos.tab[linha-1][coluna]->codigo*peca<0)
+                pos.tab[linha-1][coluna]->ataques++;
+        }
+        if (coluna<7 && (pos.tab[linha-1][coluna+1] == NULL || pos.tab[linha-1][coluna+1]->codigo*peca<0)){//inferior direita
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna+1); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha-1, coluna+1);
+            if(pos.tab[linha-1][coluna+1] != NULL && pos.tab[linha-1][coluna+1]->codigo*peca<0)
+                pos.tab[linha-1][coluna+1]->ataques++;
+        }
+        if (coluna>0 && (pos.tab[linha-1][coluna-1] == NULL || pos.tab[linha-1][coluna-1]->codigo*peca<0)){//inferior esquerda
+            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna-1); qtd++;
+            InsereJogadaInicio(lista, linha, coluna, linha-1, coluna-1);
+            if(pos.tab[linha-1][coluna-1] != NULL && pos.tab[linha-1][coluna-1]->codigo*peca<0)
+                pos.tab[linha-1][coluna-1]->ataques++;
+        }
+    }
+
+    if (coluna<7 && (pos.tab[linha][coluna+1] == NULL || pos.tab[linha][coluna+1]->codigo*peca<0)){ //mesma linha, casa da direita
+        //jogs[qtd] = CriaJogada(linha,coluna,linha,coluna+1); qtd++;
+        InsereJogadaInicio(lista, linha, coluna, linha, coluna+1);
+        if(pos.tab[linha][coluna+1] != NULL && pos.tab[linha][coluna+1]->codigo*peca<0)
+            pos.tab[linha][coluna+1]->ataques++;
+    }
+
+    if (coluna>0 && (pos.tab[linha][coluna-1] == NULL || pos.tab[linha][coluna-1]->codigo*peca<0)){ //mesma linha, casa da esquerda
+        //jogs[qtd] = CriaJogada(linha,coluna,linha,coluna-1); qtd++;
+        InsereJogadaInicio(lista, linha, coluna, linha, coluna -1);
+        if(pos.tab[linha][coluna-1] != NULL && pos.tab[linha][coluna-1]->codigo*peca<0)
+            pos.tab[linha][coluna-1]->ataques++;
+    }
+
+}
+
+
+void CalculaJogadas(struct Posicao pos,int linha, int coluna, struct Jogada *lista){
+
+    if(pos.tab[linha][coluna] != NULL){
+        int aux, peca = pos.tab[linha][coluna]->codigo;
+        switch (abs(peca)){
+        case PEAO:   CalculaPeao(pos,linha,coluna, lista);break;//peoes
+        case CAVALO: CalculaCavalo(pos,linha,coluna, lista);break;//cavalos
+        case BISPO:  CalculaBispo(pos,linha,coluna, lista);break;//bispos
+        case TORRE:  CalculaTorre(pos,linha,coluna, lista);break;//torres
+        case RAINHA: CalculaBispo(pos, linha, coluna, lista);
+                     CalculaTorre(pos, linha, coluna, lista);
+        case REI:    CalculaRei(pos,linha,coluna, lista);break;//rei
+        }
+    }
+}
 struct Jogada *CalculaJogadasPossiveis(struct Posicao pos){
     
     struct Peca *aux;
     struct Jogada *listaPossiveisJogadas = CriaListaJogadas();
-
-    //Zerando o contador de ataques de cada peça.
+    //Zerando o contador de ataques de cada pe?a.
     
     aux = pos.brancas->prox;
     
@@ -92,27 +406,31 @@ struct Jogada *CalculaJogadasPossiveis(struct Posicao pos){
         aux = aux->prox;
     }
 
-
+    
     if(pos.jogVez == 1){
-        ///Brancas
+        //Brancas
         aux = pos.brancas->prox;
+
         while(aux != pos.brancas){
-            CalculaJogadas(pos, aux->linha, aux->coluna, listaPossiveisJogadas);    
+            CalculaJogadas(pos, aux->linha, aux->coluna, listaPossiveisJogadas);
             aux = aux->prox;
         }
-    }else{
-        ///Pretas
-        aux = pos.pretas->prox;
+    }else{ 
+        //Pretas
+        aux = pos.pretas->prox;    
         while(aux != pos.pretas){
             CalculaJogadas(pos, aux->linha, aux->coluna, listaPossiveisJogadas);
             aux = aux->prox;
         }
+    
     }
+
+
 
     return listaPossiveisJogadas;
 
 }
-//Funções de operação entre listas (lista de peças).
+//FunÃ§Ãµes de operaÃ§Ãµes entre listas (lista de peÃ§as).
 
 struct Peca *CriaLista()
 {
@@ -157,18 +475,14 @@ struct Peca *Busca(struct Peca *lista, int codigo, int linha, int coluna)
 
 }
     
-void RemovePeca(struct Peca *lista, int codigo, int linha, int coluna)
+void RemovePeca(struct Peca *ponteiro)
 {
-    struct Peca *aux = Busca(lista, codigo, linha, coluna);
-    if(aux != NULL)
-    {
-        aux->prox->ant = aux->ant;
-        aux->ant->prox = aux->prox;
-        free(aux);
-    }
+    ponteiro->prox->ant = ponteiro->ant;
+    ponteiro->ant->prox = ponteiro->prox;
+    free(ponteiro);
 }
 
-struct Peca *DestruirLista(struct Peca *lista)
+struct Peca *DestruirListaPecas(struct Peca *lista)
 {
     struct Peca *aux = lista;
     lista->ant->prox = NULL;
@@ -204,260 +518,19 @@ void DesenhaTabuleiro(struct Posicao posAtual){
     for (i=7;i>=0;i--){
         printf("%d   |",i+1);
         for (j=0;j<8;j++){
-            AjustaCor(posAtual.tab[i][j]->codigo);
-            if (posAtual.tab[i][j]>=0)
-                printf(" %d",posAtual.tab[i][j]->codigo);
-            else printf("%d",posAtual.tab[i][j]->codigo);
+            if(posAtual.tab[i][j] != NULL){
+
+                AjustaCor(posAtual.tab[i][j]->codigo);
+                printf(" %1d",posAtual.tab[i][j]->codigo);
+            }
+            else printf(" %1d",0);
+            
             ResetCor();
             printf(" |");
         }
         printf("\n    +---+---+---+---+---+---+---+---+\n");
     }
     printf("      1   2   3   4   5   6   7   8 \n");
-}
-
-void CalculaPeao(struct Posicao pos,int linha,int coluna, struct Jogada *lista){ 
-    struct Jogada jogada;
-    int qtd = 0, peca = pos.tab[linha][coluna]->codigo;
-
-    if (linha+peca>=0 && linha+peca<=7){//não está na primeira nem na última linha
-        if (pos.tab[linha+peca][coluna]==NULL){ //pode avancar
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+peca,coluna); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+peca, coluna);
-        }
-        if (coluna>0 && pos.tab[linha+peca][coluna-1]->codigo*peca<0){ //verificar captura na esquerda
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+peca,coluna-1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+peca, coluna-1);
-        }
-        if (coluna<7 && pos.tab[linha+peca][coluna+1]->codigo*peca<0){
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+peca,coluna+1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+peca, coluna+1);
-            pos.tab[linha+peca][coluna+1]->ataques++;
-        }
-    }
-}
-
-void CalculaCavalo(struct Posicao pos, int linha, int coluna, struct Jogada *lista){
-    int qtd=0,peca = pos.tab[linha][coluna]->codigo;
-
-    if (linha<6){ //duas linhas acima
-        if (coluna<7 && pos.tab[linha+2][coluna+1]->codigo*peca<=0){ //direita
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+2,coluna+1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+2, coluna+1);
-            if(pos.tab[linha+2][coluna+1]->codigo*peca < 0)
-                pos.tab[linha+2][coluna+1]->ataques++;
-        }
-        if (coluna>0 && pos.tab[linha+2][coluna-1]->codigo*peca<=0){ //esquerda
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+2,coluna-1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+2, coluna-1);
-            if(pos.tab[linha+2][coluna-1]->codigo*peca < 0)
-                pos.tab[linha+2][coluna-1]->ataques++;
-        }
-    }
-    if (linha<7){//uma linha acima
-        if (coluna<6 && pos.tab[linha+1][coluna+2]->codigo*peca<=0){ //duas casas à direita
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna+2); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+1, coluna+2);
-            if(pos.tab[linha+1][coluna+2]->codigo*peca<0)
-                pos.tab[linha+1][coluna+2]->ataques++;
-        }
-        if (coluna>1 && pos.tab[linha+1][coluna-2]->codigo*peca<=0){ //duas casas à esquerda
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna-2); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+1, coluna-2);
-            if(pos.tab[linha+1][coluna-2]->codigo*peca<0)
-                pos.tab[linha+1][coluna-2]->ataques++;
-        }
-    }
-    if (linha>1){ //duas linhas abaixo
-        if (coluna<7 && pos.tab[linha-2][coluna+1]->codigo*peca<=0){ //direita
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-2,coluna+1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-2, coluna+1);
-            if(pos.tab[linha-2][coluna+1]->codigo*peca<0)
-                pos.tab[linha-2][coluna+1]->ataques++;
-        }
-        if (coluna>0 && pos.tab[linha-2][coluna-1]->codigo*peca<=0){ //esquerda
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-2,coluna-1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-2, coluna-1);
-            if(pos.tab[linha-2][coluna-1]->codigo*peca<0)
-                pos.tab[linha-2][coluna-1]->ataques++;
-        }
-    }
-    if (linha>0){//uma linha abaixo
-        if (coluna<6 && pos.tab[linha-1][coluna+2]->codigo*peca<=0){ //duas casas à direita
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna+2); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-1, coluna+2);
-            if(pos.tab[linha-1][coluna+2]->codigo*peca<0)
-                pos.tab[linha-1][coluna+2]->ataques++;
-        }
-        if (coluna>1 && pos.tab[linha-1][coluna-2]->codigo*peca<=0){ //duas casas à esquerd
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna-2); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-1, coluna-2);
-            if(pos.tab[linha-1][coluna-2]->codigo*peca<0)
-                pos.tab[linha-1][coluna-2]->ataques++;
-        }
-    }
-}
-
-void CalculaBispo(struct Posicao pos, int linha, int coluna, struct Jogada *lista){ 
-    int qtd = 0,peca = pos.tab[linha][coluna]->codigo;
-
-    int k=0;
-
-    do{//diagonal superior direita
-        k++;
-        if (linha+k<8 && coluna+k<8 && pos.tab[linha+k][coluna+k]->codigo*peca<=0){
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+k,coluna+k); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+k, coluna+k);
-            if(pos.tab[linha+k][coluna+k]->codigo*peca<0)
-                pos.tab[linha+k][coluna+k]->ataques++;
-        }
-    }while (linha+k<8 && coluna+k<8 && pos.tab[linha+k][coluna+k]==NULL);
-
-    k=0;
-    do{//diagonal superior esquerda
-        k++;
-        if (linha+k<8 && coluna-k>=0 && pos.tab[linha+k][coluna-k]->codigo*peca<=0){
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+k,coluna-k); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+k, coluna-k);
-            if(pos.tab[linha+k][coluna-k]->codigo*peca<0)
-                pos.tab[linha+k][coluna-k]->ataques++;
-        }
-    }while (linha+k<8 && coluna-k>=0 && pos.tab[linha+k][coluna-k]==NULL);
-
-    k=0;
-    do{//diagonal inferior direita
-        k++;
-        if (linha-k>=0 && coluna+k<8 && pos.tab[linha-k][coluna+k]->codigo*peca<=0){
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-k,coluna+k); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-k, coluna+k);
-            if(pos.tab[linha-k][coluna+k]->codigo*peca<0)
-                pos.tab[linha-k][coluna+k]->ataques++;
-        }
-    }while (linha-k>=0 && coluna+k<8 && pos.tab[linha-k][coluna+k]==NULL);
-
-    k=0;
-    do{//diagonal inferior direita
-        k++;
-        if (linha-k>=0 && coluna-k>=0 && pos.tab[linha-k][coluna-k]->codigo*peca<=0){
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-k,coluna-k); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-k, coluna-k);
-            if(pos.tab[linha-k][coluna-k]->codigo*peca<0)
-                pos.tab[linha-k][coluna-k]->ataques++;
-
-        }
-    }while (linha-k>=0 && coluna+k>=0 && pos.tab[linha-k][coluna-k]==NULL);
-
-}
-
-void CalculaTorre(struct Posicao pos, int linha, int coluna, struct Jogada *lista){
-    int qtd = 0, peca=pos.tab[linha][coluna]->codigo;
-
-    int k=0;
-
-    do{//coluna acima
-        k++;
-        if (linha+k<8 && pos.tab[linha+k][coluna]->codigo*peca<=0){
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+k,coluna); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+k, coluna);
-            if(pos.tab[linha+k][coluna]->codigo*peca<0)
-                pos.tab[linha+k][coluna]->ataques++;
-        }
-    }while(linha+k<8 && pos.tab[linha+k][coluna]==NULL);
-
-    k=0;
-    do{//coluna abaixo
-        k++;
-        if (linha-k>=0 && pos.tab[linha-k][coluna]->codigo*peca<=0){
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-k,coluna); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-k, coluna);
-            if(pos.tab[linha-k][coluna]->codigo*peca<0)
-                pos.tab[linha-k][coluna]->ataques++;
-        }
-    }while(linha-k>=0 && pos.tab[linha-k][coluna]==NULL);
-
-    k=0;
-    do{//linha direita
-        k++;
-        if (coluna+k<8 && pos.tab[linha][coluna+k]->codigo*peca<=0){
-            //jogs[qtd] = CriaJogada(linha,coluna,linha,coluna+k); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha, coluna+k);
-           if( pos.tab[linha][coluna+k]->codigo*peca<0)
-               pos.tab[linha][coluna+k]->ataques++;
-        }
-    }while(coluna+k<8 && pos.tab[linha][coluna+k]==NULL);
-
-    k=0;
-    do{//linha esquerda
-        k++;
-        if (coluna-k>=0 && pos.tab[linha][coluna-k]->codigo*peca<=0){
-            //jogs[qtd] = CriaJogada(linha,coluna,linha,coluna-k); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha, coluna-k);
-            if(pos.tab[linha][coluna-k]->codigo*peca<0)
-                pos.tab[linha][coluna-k]->ataques++;
-        }
-    }while(coluna-k>=0 && pos.tab[linha][coluna-k]==NULL);
-
-}
-
-void CalculaRei(struct Posicao pos, int linha, int coluna, struct Jogada *lista){
-    int qtd = 0, peca=pos.tab[linha][coluna]->codigo;
-
-    if (linha<7){//linha de cima
-        if (pos.tab[linha+1][coluna]->codigo*peca<=0){//mesma coluna
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+1,coluna);
-            if(pos.tab[linha+1][coluna]->codigo*peca<0)
-                pos.tab[linha+1][coluna]->ataques++;
-        }
-        if (coluna<7 && pos.tab[linha+1][coluna+1]->codigo*peca<=0){//superior direita
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna+1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+1, coluna+1);
-            if(pos.tab[linha+1][coluna+1]->codigo*peca<0)
-                pos.tab[linha+1][coluna+1]->ataques++;
-        }
-        if (coluna>=0 && pos.tab[linha+1][coluna-1]->codigo*peca<=0){//superior esquerda
-            //jogs[qtd] = CriaJogada(linha,coluna,linha+1,coluna-1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha+1, coluna-1);
-            if(pos.tab[linha+1][coluna-1]->codigo*peca<0)
-                pos.tab[linha+1][coluna-1]->ataques++;
-        }
-    }
-
-    if (linha>0){//linha de baixo
-        if (pos.tab[linha-1][coluna]->codigo*peca<=0){//mesma coluna
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-1, coluna);
-            if(pos.tab[linha-1][coluna]->codigo*peca<0)
-                pos.tab[linha-1][coluna]->ataques++;
-        }
-        if (coluna<7 && pos.tab[linha-1][coluna+1]->codigo*peca<=0){//inferior direita
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna+1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-1, coluna+1);
-            if(pos.tab[linha-1][coluna+1]->codigo*peca<0)
-                pos.tab[linha-1][coluna+1]->ataques++;
-        }
-        if (coluna>=0 && pos.tab[linha-1][coluna-1]->codigo*peca<=0){//inferior esquerda
-            //jogs[qtd] = CriaJogada(linha,coluna,linha-1,coluna-1); qtd++;
-            InsereJogadaInicio(lista, linha, coluna, linha-1, coluna-1);
-            if(pos.tab[linha-1][coluna-1]->codigo*peca<0)
-                pos.tab[linha-1][coluna-1]->ataques++;
-        }
-    }
-
-    if (coluna<7 && pos.tab[linha][coluna+1]->codigo*peca<=0){ //mesma linha, casa da direita
-        //jogs[qtd] = CriaJogada(linha,coluna,linha,coluna+1); qtd++;
-        InsereJogadaInicio(lista, linha, coluna, linha, coluna+1);
-        if(pos.tab[linha][coluna+1]->codigo*peca<0)
-            pos.tab[linha][coluna+1]->ataques++;
-    }
-
-    if (coluna>0 && pos.tab[linha][coluna-1]->codigo*peca<=0){ //mesma linha, casa da esquerda
-        //jogs[qtd] = CriaJogada(linha,coluna,linha,coluna-1); qtd++;
-        InsereJogadaInicio(lista, linha, coluna, linha, coluna -1);
-        if(pos.tab[linha][coluna-1]->codigo*peca<0)
-            pos.tab[linha][coluna-1]->ataques++;
-    }
-
 }
 
 struct Posicao IniciaTabuleiro()
@@ -470,20 +543,22 @@ struct Posicao IniciaTabuleiro()
     posInicial.jogVez = 1;
 
 
-    for (i=0;i<8;i++)
-        for (j=0;j<8;j++)
+    for (i=0;i<8;i++){
+        for (j=0;j<8;j++){
             if (i==1)
             {
                 InsereInicio(posInicial.brancas, PEAO, i, j);
-                posInicial.tab[i][j]= posInicial.brancas->prox;//peões branco
+                posInicial.tab[i][j]= posInicial.brancas->prox;//pe?es branco
             }
             else if (i==6)
             {    
                 InsereInicio(posInicial.pretas, -PEAO, i, j);
-                posInicial.tab[i][j]= posInicial.pretas->prox;//peões preto
+                posInicial.tab[i][j]= posInicial.pretas->prox;//pe?es preto
             }
 
             else posInicial.tab[i][j] = NULL;//outras casas
+        }
+    }
 
     InsereInicio(posInicial.brancas, TORRE, 0, 0);
     posInicial.tab[0][0] = posInicial.brancas->prox;
@@ -543,74 +618,8 @@ struct Posicao IniciaTabuleiro()
     return posInicial;
 }
 
-void EscolhePeca(struct Posicao pos ,int *linha, int *coluna){
-    do{
-        printf("Digite a linha e a coluna da peca a ser movida:");
-        scanf("%d %d",linha,coluna); //lê valores de 1 a 8
-        (*linha)--; //converte para valores de 0 a 7
-        (*coluna)--;
-        if (pos.tab[*linha][*coluna]==NULL){
-            printf("Nao tem peca nessa casa!!!\n");
-        }
-    }while (pos.tab[*linha][*coluna]==NULL);
-}
-
-void CalculaJogadas(struct Posicao pos,int linha, int coluna, struct Jogada *lista){
-    int aux, peca = pos.tab[linha][coluna]->codigo;
-    switch (abs(peca)){
-    case PEAO:   CalculaPeao(pos,linha,coluna,lista);break;//peoes
-    case CAVALO: CalculaCavalo(pos,linha,coluna,lista);break;//cavalos
-    case BISPO:  CalculaBispo(pos,linha,coluna,lista);break;//bispos
-    case TORRE:  CalculaTorre(pos,linha,coluna,lista);break;//torres
-    case RAINHA: CalculaBispo(pos,linha,coluna,lista);
-                 CalculaTorre(pos,linha,coluna,lista);
-                 break;
-    case REI:    CalculaRei(pos,linha,coluna,lista);break;//rei
-    }
-}
-
-struct Jogada EscolheJogada(struct Jogada *listaJogadas){
-    int i = 0,j=0,op, qtd;
-    qtd = qtdJogadas(listaJogadas);
-    
-    /*do{
-        for (i=0;i<qtd;i++){
-            printf("Jogada %2d: mover para linha %d coluna %d |",i+1,jogs[i].paraLinha+1,jogs[i].paraColuna+1);
-            if ( (i+1) % 3 == 0)
-                printf("\n");
-        }
-        printf("\nJogada:");
-        scanf("%d",&op);
-    }while (op<1 || op>qtd);*/
-    
-    struct Jogada *aux = listaJogadas->prox;
-    do{ 
-        while(aux != listaJogadas){
-            printf("Jogada %2d: mover para linha %d coluna %d |", i+1, aux->paraLinha+1, aux->paraColuna+1);   
-            if((i+1) % 3 == 0)
-                printf("\n");
-            
-            i++;
-            aux = aux->prox;
-        }
-        printf("\nJogada:");
-        scanf("%d", &op);
-    }while(op<1 || op>qtd);    
-
-    aux = listaJogadas->prox;
-
-    do{
-        if(j == op)
-            return *aux;
-        
-        aux = aux->prox;
-        j++;
-    }while(j != op);
-
-
-}
-
 int qtdJogadas(struct Jogada *lista){
+
     int qtd = 0;
     struct Jogada *aux = lista->prox;
 
@@ -621,97 +630,114 @@ int qtdJogadas(struct Jogada *lista){
 
     return qtd;
 
-} 
-
-int ExecutaJogada(struct Posicao *pos, struct Jogada jog){
-    int resp=0; 
-    struct Peca *peca = pos->tab[jog.deLinha][jog.deColuna];
-
-    //tab[jog.deLinha][jog.deColuna] = 0; //tira a peça
-
-    if(pos->tab[jog.deLinha][jog.deColuna]->codigo * peca->codigo = 0){ //movimentação
-        pos->tab[jog.paraLinha][jog.paraColuna] = peca; 
-        peca->linha = jog.paraLinha;
-        peca->coluna = jog.paraColuna;
-        pos->tab[jog.deLinha][jog.paraColuna] = NULL;
-        
-        return 0;
-    }   
-
-    if(pos->tab[jog.deLinha][jog.deColuna]->codigo * peca->codigo < 0){ //captura
-        
-        if(pos->jogVez == 1){
-            if(pos->tab[jog.paraLinha][jog.paraColuna]->codigo == -REI){
-                RemovePeca(pos->qtdPretas, peca->codigo, peca->linha, peca->coluna);
-                pos->qtdPretas--;
-                pos->tab[jog.paraLinha][jog.paraColuna] = peca;
-                peca->linha = jog.paraLinha;
-                peca->coluna = jog.paraColuna;
-                pos->tab[jog.deLinha][jog.deColuna] = NULL;
-                
-                return 1;
-            }else{
-                RemovePeca(pos->qtdPretas, peca->codigo, peca->linha, peca->coluna);
-                pos->qtdPretas--;
-                pos->tab[jog.paraLinha][jog.paraColuna] = peca;
-                peca->linha = jog.paraLinha;
-                peca->coluna = jog.paraColuna;
-                pos->tab[jog.deLinha][jog.deColuna] = NULL;
-                return 0;
-            }
-        } 
-
-        if(pos->jogVez == -1){
-            if(pos->tab[jog.paraLinha][jog.paraColuna]->codigo == REI){
-                RemovePeca(pos->qtdBrancas, peca->codigo, peca->linha, peca->coluna);
-                pos->qtdBrancas--;
-                pos->tab[jog.paraLinha][jog.paraColuna] = peca;
-                peca->linha = jog.paraLinha;
-                peca->coluna = jog.paraColuna;
-                pos->tab[jog.deLinha][jog.deColuna] = NULL;
-
-                return 1;
-            }else{
-                RemovePeca(pos->qtdPretas, peca->codigo, peca->linha, peca->coluna);
-                pos->qtdPretas--;
-                pos->tab[jog.paraLinha][jog.paraColuna] = peca;
-                peca->linha = jog.paraLinha;
-                peca->coluna = jog.paraColuna;
-                pos->tab[jog.deLinha][jog.deColuna] = NULL;
-                return 0;
-            }
-        }
-    
-    }
-    //if (abs(tab[jog.paraLinha][jog.paraColuna])==REI) //verifica se o rei adversário será capturado
-    //    resp = peca; //resp indica quem será vencedor
-
-    //tab[jog.paraLinha][jog.paraColuna] = peca; //coloca a peça na nova posição
-
-    //return resp;
 }
 
-int main(){
-    int tab[8][8];
-    int vencedor=0,linha,coluna,escolha;
-    int qtdJogadas;
-    struct Jogada *jogadasPossiveis = CriaListaJogadas();
-    struct Jogada jogada;
-    struct Posicao posAtual;
-    posAtual = IniciaTabuleiro();
+struct Jogada EscolheJogada(struct Jogada *lista){
+    
+    struct Jogada jogada, *aux = NULL ;
+    
+    int ver = 0;
+    
+    
 
-    while (vencedor==0){
+    do{
+
+        printf("========================================"); 
+        printf("\nDigite a jogada desejada\n");
+        printf("========================================\n"); 
+        printf("\nLinha de onde a peÃ§a estÃ¡:\n");
+        scanf("%d", &jogada.deLinha);
+        jogada.deLinha--;
+        printf("\nColuna de onde a peÃ§a estÃ¡:\n");
+        scanf("%d", &jogada.deColuna);
+        jogada.deColuna--;
+        printf("Linha para onde a peÃ§a vai:\n");
+        scanf("%d", &jogada.paraLinha);
+        jogada.paraLinha--;
+        printf("Coluna para onde a peÃ§a vai:\n");
+        scanf("%d", &jogada.paraColuna);
+        jogada.paraColuna--;
+        
+        aux = BuscaJogada(lista, jogada.deLinha, jogada.deColuna, jogada.paraLinha, jogada.paraColuna);
+        
+        if(aux == NULL)
+            printf("Essa jogada nÃ£o Ã© possÃ­vel!\n");
+        else
+            ver++;
+    }while(ver == 0);
+
+    return jogada;
+}
+ 
+
+
+
+int ExecutaJogada(struct Jogada jog, struct Posicao *pos){
+    
+    int resp = 0;
+    
+    struct Peca *peca = pos->tab[jog.deLinha][jog.deColuna];
+
+    pos->tab[jog.deLinha][jog.deColuna] = NULL;
+
+    if(pos->tab[jog.paraLinha][jog.paraColuna] != NULL){
+        if(abs(pos->tab[jog.paraLinha][jog.paraColuna]->codigo) == REI)
+            resp = 1;
+
+        RemovePeca(pos->tab[jog.paraLinha][jog.paraColuna]);
+        
+        if(pos->jogVez == 1)
+            pos->qtdPretas--;
+        else
+            pos->qtdBrancas--;
+    }
+
+    pos->tab[jog.paraLinha][jog.paraColuna] = peca;
+    peca->linha = jog.paraLinha;
+    peca->coluna = jog.paraColuna;
+
+    pos->jogVez = -pos->jogVez;
+        
+
+    return resp;
+}
+
+
+
+
+int main(){
+    
+    struct Jogada jogada, *jogadasPossiveis; 
+    
+    struct Posicao posAtual;
+    int vencedor = 0;
+    posAtual = IniciaTabuleiro();
+   
+    jogadasPossiveis = CalculaJogadasPossiveis(posAtual);
+
+
+      while(vencedor==0){
+        
         DesenhaTabuleiro(posAtual);
-        EscolhePeca(posAtual,&linha,&coluna);
+
         jogadasPossiveis = CalculaJogadasPossiveis(posAtual);
 
         jogada = EscolheJogada(jogadasPossiveis);
-        vencedor = ExecutaJogada(&posAtual,jogada);
+        vencedor = ExecutaJogada(jogada,&posAtual);
+        
+        jogadasPossiveis = DestruirListaJogadas(jogadasPossiveis);
+
+
     }
-    if (vencedor>0){
+
+    if (posAtual.jogVez== 1){
         printf("Brancas venceram!");
     }else printf("Pretas venceram!");
 
+    DestruirListaPecas(posAtual.brancas);
+    DestruirListaPecas(posAtual.pretas);
 
+
+    
     return 0;
 }
