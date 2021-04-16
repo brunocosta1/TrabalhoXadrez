@@ -8,6 +8,7 @@
 #define RAINHA  5
 #define REI     6
 
+
 struct Jogada{
     int deLinha,deColuna,paraLinha,paraColuna;
     struct Jogada *prox, *ant;
@@ -754,7 +755,48 @@ void LiberaMemoria(struct Posicao pos){
 
 double AvaliaPosicao(struct Posicao posAtual){
     
-    double avaliacao = 0;
+    double avaliacao = 0.0;
+
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            
+            if(posAtual.tab[i][j] != NULL){
+                switch(posAtual.tab[i][j]->codigo){
+                    case RAINHA:
+                        avaliacao += -9.0;
+                        break;
+                    case -RAINHA:
+                        avaliacao += 9.0;
+                        break;
+                    case CAVALO:
+                        avaliacao += -3.0;
+                        break;
+                    case -CAVALO:
+                        avaliacao += 3.0;
+                        break;
+                    case BISPO:
+                        avaliacao += -3.0;
+                        break;
+                    case -BISPO:
+                        avaliacao += 3.0;
+                        break;
+                    case TORRE:
+                        avaliacao += -5.0;
+                        break;
+                    case -TORRE:
+                        avaliacao += 5.0;
+                        break;
+                    case REI:
+                        avaliacao += -200.0;
+                        break;
+                    case -REI:
+                        avaliacao += 200.0;
+                        break;
+            }
+        }
+    }
+
+
 
     return avaliacao;
 }
