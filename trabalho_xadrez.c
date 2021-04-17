@@ -118,6 +118,16 @@ void CalculaPeao(struct Posicao pos,int linha,int coluna, struct Jogada *lista){
         }
     }
     
+    if(pos.tab[linha+peca][coluna] == NULL && pos.tab[linha+2*peca][coluna] == NULL){
+        if(linha == 1 && pos.tab[linha][coluna]->codigo > 0)
+            InsereJogadaInicio(lista, linha, coluna, linha+2*peca, coluna);
+
+        if(linha == 6 && pos.tab[linha][coluna]->codigo < 0){
+            InsereJogadaInicio(lista, linha, coluna, linha+2*peca, coluna);
+        }
+
+
+    }
 
 }
 
@@ -700,6 +710,17 @@ int ExecutaJogada(struct Jogada jog, struct Posicao *pos){
     pos->jogVez = -pos->jogVez;
         
 
+    // Verificando a última linha do lado das pretas:
+
+    for(int i = 0; i < 8; i++){
+        if(pos->tab[7][i]->codigo == PEAO)
+            pos->tab[7][i]->codigo = RAINHA;
+
+        if(pos->tab[0][i]->codigo == -PEAO)
+            pos->tab[7][i]->codigo = -RAINHA;
+    }
+
+
     return resp;
 }
 
@@ -755,7 +776,7 @@ void LiberaMemoria(struct Posicao pos){
 
 double AvaliaPosicao(struct Posicao posAtual){
     
-    double avaliacao = 0.0;
+    double avaliacao = -0.5; // Colocando uma "vantagem" inicial para as brancas, porque elas que possuem o primeiro lance 
 
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
@@ -792,12 +813,67 @@ double AvaliaPosicao(struct Posicao posAtual){
                     case -REI:
                         avaliacao += 200.0;
                         break;
+                }
             }
         }
     }
 
+    // Avaliando se há peões ou peças menores(cavalo ou bispo) no centro (casas e4, d4, e5, d5)
+    
+    for(int i = 3; i < 5; i++){
+        for(int j = 3; j < 5; j++){
+
+            if(posAtual.tab[i][j] != NULL){
+                
+                switch(posAtual.tab[i][j]->codigo){
+                    
+                    case PEAO:
+                        avaliacao += -0.4;
+                        break;
+                    case -PEAO:
+                        avaliacao += 0.4;
+                        break;
+                    case CAVALO:
+                        avaliacao += -1.0 ;
+                        break;
+                    case -CAVALO:
+                        avaliacao += 1.0;
+                        break;
+                    case BISPO:
+                        avaliacao += -1.0;
+                        break;
+                    case -BISPO:
+                        avaliacao += 1.0;
+                        break;
+                }
+
+            }
+        }
 
 
+
+    }
+    
+    // Analisando quantos ataques tem uma peça (se tiver mais ela será menos valiosa)
+   
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            if(posAtual.tab[i][j] != NULL)
+                
+                if(posAtual.tab[i][j]->codigo < 0){
+                    avaliacao += posAtual.tab[i][j]->ataques*0.1; // Peça preta sofrendo ataque, logo chance maior para as brancas
+                    if(posAtual.tab[i][j]->codigo == -REI)
+                        avaliacao += posAtual.tab[i][j]->ataques*2; 
+                }else{
+                    avaliacao += posAtual.tab[i][j]->ataques * -(0.1); // Peça branca sofrento ataque, logo chance maior para as pretas
+                    if(posAtual.tab[i][j]->codigo == REI)
+                        avaliacao += posAtual.tab[i][j]->ataques*2;
+                }
+
+            
+        }
+    }
+    
     return avaliacao;
 }
 
@@ -817,6 +893,8 @@ int main(){
         DesenhaTabuleiro(posAtual);
 
         jogadasPossiveis = CalculaJogadasPossiveis(posAtual);
+
+        printf("\n%f\n", AvaliaPosicao(posAtual));
 
         jogada = EscolheJogada(jogadasPossiveis);
         vencedor = ExecutaJogada(jogada,&posAtual);
