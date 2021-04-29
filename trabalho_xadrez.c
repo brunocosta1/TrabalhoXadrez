@@ -8,7 +8,7 @@
 #define TORRE   4
 #define RAINHA  5
 #define REI     6
-
+#define MAX_NIVEL 3 
 
 struct Jogada{
     int deLinha,deColuna,paraLinha,paraColuna;
@@ -714,11 +714,14 @@ int ExecutaJogada(struct Jogada jog, struct Posicao *pos){
     // Verificando a última linha do lado das pretas:
 
     for(int i = 0; i < 8; i++){
-        if(pos->tab[7][i]->codigo == PEAO)
-            pos->tab[7][i]->codigo = RAINHA;
-
-        if(pos->tab[0][i]->codigo == -PEAO)
-            pos->tab[7][i]->codigo = -RAINHA;
+        if(pos->tab[7][i] != NULL){
+            if(pos->tab[7][i]->codigo == PEAO)
+                pos->tab[7][i]->codigo = RAINHA;
+        }
+        if(pos->tab[0][i] != NULL){
+            if(pos->tab[0][i]->codigo == -PEAO)
+                pos->tab[0][i]->codigo = -RAINHA;
+        }
     }
 
 
@@ -859,7 +862,7 @@ double AvaliaPosicao(struct Posicao posAtual){
    
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
-            if(posAtual.tab[i][j] != NULL)
+            if(posAtual.tab[i][j] != NULL){
                 
                 if(posAtual.tab[i][j]->codigo < 0){
                     avaliacao += posAtual.tab[i][j]->ataques*0.1; // Peça preta sofrendo ataque, logo chance maior para as brancas
@@ -872,15 +875,113 @@ double AvaliaPosicao(struct Posicao posAtual){
                 }
 
             
+            }
         }
-    }
-    
+    }    
+
     return avaliacao;
+}
+// Função da IA
+
+
+
+struct Jogada ExecutaIA(struct Posicao posAtual, int nivel, double alfa, double beta){
+    struct Jogada melhorJogada, jogadaIA;
+    double melhorValor = 0.0 , valorJogada = 0.0;
+    struct Jogada *lista, *listaPretas, *listaBrancas, *jogadaAux;
+    struct Posicao posCopia;
+    
+    int k, ptr = 0;
+
+    if(nivel % 2 == 0)
+        melhorValor = -INFINITY;
+    else
+        melhorValor = INFINITY;
+
+    int podado = 0;
+
+
+    if(posAtual.jogVez == -1){
+        listaPretas = CalculaJogadasPossiveis(posAtual);
+        posAtual.jogVez = 1;
+        listaBrancas = CalculaJogadasPossiveis(posAtual);
+        posAtual.jogVez = -1;
+    }else{
+        listaBrancas = CalculaJogadasPossiveis(posAtual);
+        posAtual.jogVez = -1;
+        listaPretas = CalculaJogadasPossiveis(posAtual);
+        posAtual.jogVez = 1;
+    }
+
+    if(nivel % 2 == 0){
+        lista = listaPretas;
+    }else{
+        lista = listaBrancas;
+    }
+
+    jogadaAux = lista->prox;
+
+    while(jogadaAux != lista && podado == 0){
+        posCopia = CopiaPosicao(posAtual);  
+        k = ExecutaJogada(*jogadaAux, &posCopia);
+        ptr = 0;
+
+        if(nivel < MAX_NIVEL){
+            
+            if(nivel % 2 == 0){
+                jogadaIA = ExecutaIA(posCopia, nivel+1, melhorValor, beta);
+                ptr++;
+            }else{
+                jogadaIA = ExecutaIA(posCopia, nivel+1, alfa, melhorValor);
+                ptr++;
+            }
+
+            if(ptr != 0)
+                k = ExecutaJogada(jogadaIA, &posCopia);
+        }   
+
+        valorJogada = AvaliaPosicao(posCopia);
+
+        if(valorJogada < alfa || valorJogada > beta)
+            podado = 1;
+            
+        if(nivel % 2 == 0 && valorJogada >= melhorValor){
+            melhorValor = valorJogada;
+            melhorJogada = *jogadaAux;
+        }else if(nivel % 2 != 0 && valorJogada <= melhorValor){
+            melhorValor = valorJogada;
+            melhorJogada = *jogadaAux;
+        }
+
+        LiberaMemoria(posCopia);
+
+        jogadaAux = jogadaAux->prox;
+    }
+
+    DestruirListaJogadas(listaPretas);
+    DestruirListaJogadas(listaBrancas);
+
+
+    return melhorJogada;
+}
+
+
+void SalvaJogada(char *nome_arquivo, struct Jogada *jogada_feita){
+
+    FILE *arq;
+    if(jogada_feita == NULL){
+        arq = fopen(nome_arquivo, "rb");
+        fclose(arq);
+    }else{
+        arq = fopen(nome_arquivo, "ab");
+        fwrite(jogada_feita, sizeof(int), 4, arq);
+        fclose(arq);
+    }
 }
 
 int main(){
     
-    struct Jogada jogada, *jogadasPossiveis; 
+    struct Jogada jogada, *jogadasPossiveis = NULL; 
     
     struct Posicao posAtual;
     int vencedor = 0;
@@ -888,24 +989,31 @@ int main(){
    
     jogadasPossiveis = CalculaJogadasPossiveis(posAtual);
 
+    FILE *arq;
+    
+    arq = fopen("jogadas.bin", "wb");
+    fclose(arq);
 
-      while(vencedor==0){
+
+
+    while(vencedor==0){
         
         DesenhaTabuleiro(posAtual);
-
-        jogadasPossiveis = CalculaJogadasPossiveis(posAtual);
-
-        printf("\n%f\n", AvaliaPosicao(posAtual));
-
-        jogada = EscolheJogada(jogadasPossiveis);
-        vencedor = ExecutaJogada(jogada,&posAtual);
         
-        jogadasPossiveis = DestruirListaJogadas(jogadasPossiveis);
+        if(posAtual.jogVez == 1){
+            jogadasPossiveis = CalculaJogadasPossiveis(posAtual);
+            jogada = EscolheJogada(jogadasPossiveis);
+            jogadasPossiveis = DestruirListaJogadas(jogadasPossiveis);
+        }else{
+            jogada = ExecutaIA(posAtual, 0, -INFINITY, INFINITY);
+        }
+        
+        SalvaJogada("jogadas.bin", &jogada);
 
-
+        vencedor = ExecutaJogada(jogada,&posAtual);
     }
 
-    if (posAtual.jogVez== 1){
+    if (posAtual.jogVez== -1){
         printf("Brancas venceram!");
     }else printf("Pretas venceram!");
 
