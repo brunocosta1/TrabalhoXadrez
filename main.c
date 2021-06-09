@@ -989,10 +989,10 @@ int main(){
    
     jogadasPossiveis = CalculaJogadasPossiveis(posAtual);
 
-    FILE *arq;
+    /*FILE *arq;*/
     
-    arq = fopen("jogadas.bin", "wb");
-    fclose(arq);
+    /*arq = fopen("jogadas.bin", "wb");*/
+    /*fclose(arq);*/
 
 
 
@@ -1008,7 +1008,7 @@ int main(){
             jogada = ExecutaIA(posAtual, 0, -INFINITY, INFINITY);
         }
         
-        SalvaJogada("jogadas.bin", &jogada);
+        /*SalvaJogada("jogadas.bin", &jogada);*/
 
         vencedor = ExecutaJogada(jogada,&posAtual);
     }
