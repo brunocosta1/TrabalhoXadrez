@@ -1,7 +1,7 @@
 #ifndef PECAS_H
 #define PECAS_H
 
-#include "./headers.h"
+
 #include "./elements.h"
 
 Peca *CriaLista();

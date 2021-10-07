@@ -1,7 +1,7 @@
 #ifndef SETUP_H
 #define SETUP_H
 
-#include "./headers.h"
+//#include "./headers.h"
 #include "./elements.h"
 
 void ResetCor();

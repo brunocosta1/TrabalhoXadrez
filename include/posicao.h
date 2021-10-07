@@ -1,7 +1,7 @@
 #ifndef POSICAO_H
 #define POSICAO_H
 
-#include "./headers.h"
+//#include "./headers.h"
 #include "./elements.h"
 
 Posicao IniciaTabuleiro();

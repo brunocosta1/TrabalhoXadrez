@@ -1,7 +1,6 @@
 #ifndef JOGADAS_H
 #define JOGADAS_H
 
-#include "./headers.h"
 #include "./elements.h"
 
 Jogada *CriaListaJogadas();
