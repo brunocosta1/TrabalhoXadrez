@@ -1,4 +1,4 @@
-#include "../include/setup.h"
+#include "../include/headers.h"
 
 void ResetCor(){
     printf("\033[0m");

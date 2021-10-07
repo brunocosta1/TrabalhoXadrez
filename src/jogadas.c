@@ -1,4 +1,5 @@
-#include "../include/jogadas.h"
+/*#include "../include/jogadas.h"*/
+#include "../include/headers.h"
 
 Jogada *CriaListaJogadas()
 {

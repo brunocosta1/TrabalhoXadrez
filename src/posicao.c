@@ -1,4 +1,4 @@
-#include "../include/posicao.h"
+#include "../include/headers.h"
 
 Posicao IniciaTabuleiro()
 {

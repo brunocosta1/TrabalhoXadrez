@@ -1,4 +1,5 @@
 #include "../include/pecas.h"
+#include "../include/headers.h"
 
 Peca *CriaLista(){
 
