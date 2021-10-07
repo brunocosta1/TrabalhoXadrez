@@ -19,21 +19,30 @@ void DesenhaTabuleiro(Posicao posAtual){
     int i,j;
     system("clear");
 
-    printf("    +---+---+---+---+---+---+---+---+\n");
+    printf("    +---+---+---+---+---+---+---+---+---+---+\n");
     for (i=7;i>=0;i--){
         printf("%d   |",i+1);
         for (j=0;j<8;j++){
             if(posAtual.tab[i][j] != NULL){
 
-                AjustaCor(posAtual.tab[i][j]->codigo);
-                printf(" %1d",posAtual.tab[i][j]->codigo);
+                if(posAtual.tab[i][j]->codigo > 0){
+
+                    AjustaCor(posAtual.tab[i][j]->codigo);
+                    printf(" %2d",posAtual.tab[i][j]->codigo);
+
+                }else{
+
+                    AjustaCor(posAtual.tab[i][j]->codigo);
+                    printf(" %1d",posAtual.tab[i][j]->codigo);
+
+                }
             }
-            else printf(" %1d",0);
+            else printf(" %2d",0);
             
             ResetCor();
             printf(" |");
         }
-        printf("\n    +---+---+---+---+---+---+---+---+\n");
+        printf("\n    +---+---+---+---+---+---+---+---+---+---+\n");
     }
     printf("      1   2   3   4   5   6   7   8 \n");
 }
