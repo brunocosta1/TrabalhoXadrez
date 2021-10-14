@@ -41,6 +41,18 @@ Agora para rodar o programa, basta digitar em seu terminal:
 ./main
 ```
 
+# Peças
+
+0 -> Não há peça
+1 -> Peão
+2 -> Cavalo
+3 -> Bispo
+4 -> Torre
+5 -> Dama
+6 -> Rei
+
+Os valores positivos são para peças brancas, negativos para peças pretas.
+
 # Configurações
 
 Se o seu computador permitir um processamento grande, você pode ir no arquivo elements.h e alterar o nível de profundidade da IA na constante MAX_NIVEL 
