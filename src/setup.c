@@ -33,7 +33,7 @@ void DesenhaTabuleiro(Posicao posAtual){
                 }else{
 
                     AjustaCor(posAtual.tab[i][j]->codigo);
-                    printf(" %1d",posAtual.tab[i][j]->codigo);
+                    printf(" %2d",posAtual.tab[i][j]->codigo);
 
                 }
             }
@@ -44,7 +44,7 @@ void DesenhaTabuleiro(Posicao posAtual){
         }
         printf("\n    +---+---+---+---+---+---+---+---+---+---+\n");
     }
-    printf("      1   2   3   4   5   6   7   8 \n");
+    printf("      1    2    3    4    5    6    7    8 \n");
 }
 
 void IniciaJogo(){
