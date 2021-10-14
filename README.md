@@ -43,15 +43,15 @@ Agora para rodar o programa, basta digitar em seu terminal:
 
 # Peças
 
-0 -> Não há peça
-1 -> Peão
-2 -> Cavalo
-3 -> Bispo
-4 -> Torre
-5 -> Dama
-6 -> Rei
+0 -> Não há peça < br />
+1 -> Peão < br />
+2 -> Cavalo < br />
+3 -> Bispo < br />
+4 -> Torre < br />
+5 -> Dama < br />
+6 -> Rei < br />
 
-Os valores positivos são para peças brancas, negativos para peças pretas.
+Os valores positivos são para peças brancas, negativos para peças pretas. < br />
 
 # Configurações
 
